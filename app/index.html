@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DJ Sounding Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef0f6; --panel: #ffffff; --ink: #1c1f33; --muted: #5d6280; --line: #d5d9e8;
+    --accent: #3b3fd8; --smooth: #12866b; --mood: #8a43c9; --boost: #b86a00; --clash: #c23a3a;
+    --wheel-off: #e3e6f1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161829; --panel: #20233a; --ink: #eceefa; --muted: #a2a7c4; --line: #34385a;
+      --accent: #8e91ff; --smooth: #3fcfa5; --mood: #c48cff; --boost: #ffb340; --clash: #ff7d7d;
+      --wheel-off: #2c3050;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 18px 60px;
+    display: grid; grid-template-columns: 1fr 320px; gap: 28px; }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  header { grid-column: 1 / -1; }
+  h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.05; margin: 0 0 6px; letter-spacing: -0.02em; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; }
+  .lede { color: var(--muted); margin: 0; max-width: 60ch; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .stack > * + * { margin-top: 20px; }
+  label { display: block; color: var(--muted); font-size: 0.9rem; margin-bottom: 6px; }
+  select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  textarea { min-height: 140px; font-size: 0.9rem; }
+  button { font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 8px;
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .now { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .now .t { font-size: 1.4rem; font-weight: 800; }
+  .key { font-weight: 800; }
+  ol.sugg { list-style: none; margin: 0; padding: 0; }
+  ol.sugg li { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+  ol.sugg li:first-child { border-top: 0; }
+  ol.sugg li.weak { opacity: 0.55; }
+  .song { font-weight: 600; }
+  .song small { color: var(--muted); font-weight: 400; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+  .tag { font-size: 0.8rem; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1.5px solid currentColor; }
+  .tag.smooth { color: var(--smooth); } .tag.mood { color: var(--mood); }
+  .tag.boost { color: var(--boost); } .tag.clash, .tag.flag { color: var(--clash); }
+  .tag.blend { color: var(--muted); }
+  .why { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 0.95rem; max-width: 70ch; }
+  ol.queue { margin: 0; padding-left: 22px; }
+  ol.queue li { padding: 6px 0; }
+  ol.queue .row { display: flex; gap: 6px; margin-top: 4px; }
+  .empty { color: var(--muted); font-size: 0.95rem; margin: 0; }
+  .errors { color: var(--clash); font-size: 0.85rem; margin: 8px 0 0; padding-left: 18px; }
+  .ok { color: var(--smooth); font-size: 0.85rem; margin: 8px 0 0; }
+  .btnrow { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  svg text { font: 600 11px "Bricolage Grotesque", system-ui, sans-serif; }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; background: var(--c); vertical-align: -1px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>DJ Sounding Board</h1>
+    <p class="lede">Pick the song that’s playing. Every other track gets ranked by how well it mixes in next, using Camelot key and BPM, with a plain-English reason.</p>
+  </header>
+
+  <section class="stack">
+    <div class="panel">
+      <label for="current">Now playing</label>
+      <select id="current"></select>
+      <div class="now" id="now"></div>
+    </div>
+    <div class="panel">
+      <h2>Best next tracks</h2>
+      <ol class="sugg" id="sugg"></ol>
+    </div>
+  </section>
+
+  <aside class="stack">
+    <div class="panel">
+      <h2>Camelot wheel</h2>
+      <svg id="wheel" viewBox="0 0 260 260" role="img" aria-label="Camelot wheel showing compatible keys"></svg>
+      <div class="legend">
+        <span style="--c: var(--accent)">Playing</span>
+        <span style="--c: var(--smooth)">Smooth</span>
+        <span style="--c: var(--mood)">Mood shift</span>
+        <span style="--c: var(--boost)">Energy boost</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Queue</h2>
+      <div id="queue"></div>
+    </div>
+    <div class="panel">
+      <h2>Your songs</h2>
+      <label for="paste">One per line: Title - Artist, BPM, Key</label>
+      <textarea id="paste" placeholder="Midnight Run - Some Artist, 124, 8A"></textarea>
+      <div class="btnrow">
+        <button class="primary" id="load">Use these songs</button>
+        <button id="restore">Restore samples</button>
+      </div>
+      <div id="pasteMsg"></div>
+    </div>
+  </aside>
+</main>
+
+<script>
+// Placeholder tracks (made up). Replace by pasting your own songs.
+const SAMPLES = [
+  ["Night Shift", "Velvet Arcade", 124, "8A"], ["Low Tide", "Mara Quill", 122, "8B"],
+  ["Glass Hours", "Northline", 126, "9A"], ["Static Bloom", "June Okafor", 124, "7A"],
+  ["Overpass", "Halden", 128, "10A"], ["Pulse Theory", "Kite & Copper", 125, "8A"],
+  ["Soft Machine", "Rhea Lune", 120, "9B"], ["Afterglow City", "Delta Rooms", 127, "3A"],
+  ["Second Wind", "Orbit Club", 123, "7B"], ["Paper Lanterns", "Sol Vega", 118, "12A"],
+  ["Concrete Garden", "Ivo Mendes", 126, "1A"], ["Runway Lights", "Mara Quill", 130, "11A"],
+  ["Tidepool", "Northline", 121, "6A"], ["Neon Psalm", "Velvet Arcade", 124, "4B"],
+  ["Halfway Home", "Kite & Copper", 110, "9A"], ["Silver Thread", "Rhea Lune", 128, "10B"],
+  ["Basement Sun", "Delta Rooms", 125, "5A"], ["Long Exposure", "Halden", 124, "2A"],
+  ["Weightless", "Sol Vega", 132, "8A"], ["Open Water", "June Okafor", 123, "11B"]
+].map(([title, artist, bpm, key], i) => ({ id: i, title, artist, bpm, key }));
+
+let songs = SAMPLES.slice();
+let currentId = songs[0].id;
+let queue = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function parseKey(k) {
+  const m = /^(1[0-2]|[1-9])([AB])$/i.exec(String(k).trim());
+  return m ? { n: +m[1], l: m[2].toUpperCase() } : null;
+}
+
+// Key relationship from a -> b on the Camelot wheel
+function relation(ka, kb) {
+  const a = parseKey(ka), b = parseKey(kb);
+  const step = (b.n - a.n + 12) % 12;
+  if (a.l === b.l) {
+    if (step === 0) return { type: "smooth", rank: 0, label: "Smooth", note: "same key" };
+    if (step === 1) return { type: "smooth", rank: 1, label: "Smooth", note: "one step up" };
+    if (step === 11) return { type: "smooth", rank: 1, label: "Smooth", note: "one step down" };
+    if (step === 2) return { type: "boost", rank: 3, label: "Energy boost", note: "two steps up" };
+  } else if (step === 0) {
+    return { type: "mood", rank: 2, label: "Mood shift", note: a.l === "A" ? "minor to major" : "major to minor" };
+  }
+  return { type: "clash", rank: 4, label: "Key clash", note: "not a neighbouring key" };
+}
+
+function explain(cur, s, rel, pct) {
+  const keys = `${cur.key} → ${s.key}`;
+  let first;
+  if (rel.type === "smooth" && rel.note === "same key") first = `Same key (${s.key}), so it will sit right on top of what’s playing.`;
+  else if (rel.type === "smooth") first = `A neighbouring key (${keys}), so the harmony stays smooth with a subtle ${rel.note.includes("up") ? "lift" : "settle"}.`;
+  else if (rel.type === "mood") first = `Same number, other letter (${keys}): a ${rel.note} switch that changes the mood without clashing.`;
+  else if (rel.type === "boost") first = `Two steps up (${keys}) gives the room a noticeable energy lift; mix it quickly.`;
+  else first = `${keys} isn’t a neighbouring key, so the melodies will likely clash in a long blend.`;
+  const dir = pct >= 0 ? "faster" : "slower";
+  const gap = Math.abs(pct).toFixed(1);
+  const bpm = Math.abs(pct) <= 6
+    ? (s.bpm === cur.bpm ? ` Same tempo (${s.bpm} BPM), so it beatmatches instantly.` : ` At ${s.bpm} BPM it’s only ${gap}% ${dir}, an easy beatmatch.`)
+    : ` At ${s.bpm} vs ${cur.bpm} BPM (${gap}% ${dir}), use a cut, echo-out, or loop instead of a long blend.`;
+  return first + bpm;
+}
+
+function ranked() {
+  const cur = songs.find(s => s.id === currentId);
+  return songs.filter(s => s.id !== currentId).map(s => {
+    const rel = relation(cur.key, s.key);
+    const pct = (s.bpm - cur.bpm) / cur.bpm * 100;
+    const flag = Math.abs(pct) > 6;
+    const score = rel.rank * 10 + Math.abs(pct) + (flag ? 15 : 0);
+    return { s, rel, pct, flag, score, why: explain(cur, s, rel, pct) };
+  }).sort((a, b) => a.score - b.score);
+}
+
+function renderSelect() {
+  $("current").innerHTML = songs.map(s =>
+    `<option value="${s.id}"${s.id === currentId ? " selected" : ""}>${esc(s.title)} – ${esc(s.artist)} (${s.bpm} BPM, ${s.key})</option>`).join("");
+}
+
+function renderNow() {
+  const cur = songs.find(s => s.id === currentId);
+  $("now").innerHTML = `<span class="t">${esc(cur.title)}</span><span>${esc(cur.artist)}</span>
+    <span>${cur.bpm} BPM</span><span class="key">${cur.key}</span>`;
+}
+
+function renderSuggestions() {
+  $("sugg").innerHTML = ranked().map(r => {
+    const bpmTag = r.flag
+      ? `<span class="tag flag">⚠ ${Math.abs(r.pct).toFixed(1)}% BPM gap</span>`
+      : `<span class="tag blend">Easy blend</span>`;
+    return `<li class="${r.rel.type === "clash" || r.flag ? "weak" : ""}">
+      <div><div class="song">${esc(r.s.title)} <small>${esc(r.s.artist)} · ${r.s.bpm} BPM · ${r.s.key}</small></div>
+      <div class="tags"><span class="tag ${r.rel.type}">${r.rel.label}</span>${bpmTag}</div></div>
+      <div><button data-add="${r.s.id}">Add to queue</button></div>
+      <p class="why">${esc(r.why)}</p></li>`;
+  }).join("");
+}
+
+function renderQueue() {
+  if (!queue.length) { $("queue").innerHTML = `<p class="empty">Add tracks from the suggestions to plan your next few mixes.</p>`; return; }
+  $("queue").innerHTML = `<ol class="queue">${queue.map((id, i) => {
+    const s = songs.find(x => x.id === id);
+    return `<li>${esc(s.title)} <span class="key">${s.key}</span> · ${s.bpm}
+      <div class="row"><button data-play="${i}">Play</button><button data-remove="${i}">Remove</button></div></li>`;
+  }).join("")}</ol><div class="btnrow"><button id="clearQ">Clear queue</button></div>`;
+}
+
+function renderWheel() {
+  const cur = songs.find(s => s.id === currentId);
+  const colors = { smooth: "var(--smooth)", mood: "var(--mood)", boost: "var(--boost)" };
+  let out = "";
+  [["B", 108], ["A", 70]].forEach(([letter, r]) => {
+    for (let n = 1; n <= 12; n++) {
+      const ang = (n % 12) * 30 - 90, rad = ang * Math.PI / 180;
+      const x = 130 + r * Math.cos(rad), y = 130 + r * Math.sin(rad);
+      const key = n + letter;
+      let fill = "var(--wheel-off)", txt = "var(--muted)";
+      if (key === cur.key) { fill = "var(--accent)"; txt = "#fff"; }
+      else { const rel = relation(cur.key, key); if (colors[rel.type]) { fill = colors[rel.type]; txt = "#fff"; } }
+      out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="15" fill="${fill}"/>
+        <text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" fill="${txt}">${key}</text>`;
+    }
+  });
+  $("wheel").innerHTML = out;
+}
+
+function render() { renderSelect(); renderNow(); renderSuggestions(); renderQueue(); renderWheel(); }
+
+$("current").addEventListener("change", e => { currentId = +e.target.value; render(); });
+document.addEventListener("click", e => {
+  const t = e.target;
+  if (t.dataset.add !== undefined) { queue.push(+t.dataset.add); renderQueue(); }
+  else if (t.dataset.remove !== undefined) { queue.splice(+t.dataset.remove, 1); renderQueue(); }
+  else if (t.dataset.play !== undefined) { currentId = queue.splice(+t.dataset.play, 1)[0]; render(); }
+  else if (t.id === "clearQ") { queue = []; renderQueue(); }
+});
+
+$("load").addEventListener("click", () => {
+  const errors = [], parsed = [];
+  $("paste").value.split("\n").forEach((line, i) => {
+    if (!line.trim()) return;
+    const m = /^(.+?)\s+-\s+(.+),\s*(\d+(?:\.\d+)?)\s*,\s*(\S+)\s*$/.exec(line.trim());
+    if (!m) { errors.push(`Line ${i + 1}: use the format Title - Artist, BPM, Key`); return; }
+    const key = parseKey(m[4]);
+    if (!key) { errors.push(`Line ${i + 1}: “${m[4]}” isn’t a Camelot key like 8A or 11B`); return; }
+    parsed.push({ id: parsed.length, title: m[1].trim(), artist: m[2].trim(), bpm: +m[3], key: key.n + key.l });
+  });
+  if (parsed.length < 2) errors.unshift("Add at least two valid songs to get suggestions.");
+  else { songs = parsed; currentId = 0; queue = []; render(); }
+  $("pasteMsg").innerHTML = (parsed.length >= 2 ? `<p class="ok">Loaded ${parsed.length} songs.</p>` : "") +
+    (errors.length ? `<ul class="errors">${errors.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "");
+});
+$("restore").addEventListener("click", () => {
+  songs = SAMPLES.slice(); currentId = songs[0].id; queue = []; $("pasteMsg").innerHTML = ""; render();
+});
+
+render();
+</script>
+</body>
+</html>
