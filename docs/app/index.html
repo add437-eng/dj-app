@@ -11,23 +11,23 @@
 <style>
 :root{
   --bg:#0a0a0c; --panel:#141417; --panel2:#1b1b20; --line:#2b2b32; --ink:#efe8db; --muted:#a39c90;
-  --amber:#ffb000; --teal:#35d6c6; --green:#3ddc84; --red:#ff5a4f;
+  --accent:#a77bff; --warn:#ffb000; --teal:#35d6c6; --green:#3ddc84; --red:#ff5a4f;
   --brush:repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "DM Sans",system-ui,sans-serif;min-height:100vh}
-a{color:var(--amber)}
+a{color:var(--accent)}
 h1,h2,h3,.brand{font-family:Righteous,"DM Sans",sans-serif;font-weight:400;letter-spacing:.02em;margin:0}
 .lcd{font-family:"Share Tech Mono",ui-monospace,monospace;letter-spacing:.06em}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
-:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-weight:700}
-.btn:hover{border-color:var(--amber)}
-.btn.primary{background:var(--amber);border-color:var(--amber);color:#1a1200}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#14002e}
 .btn.small{padding:4px 10px;font-size:.85rem}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.link{background:none;border:0;color:var(--amber);padding:0;text-decoration:underline;font-size:.9rem}
+.link{background:none;border:0;color:var(--accent);padding:0;text-decoration:underline;font-size:.9rem}
 input,select,textarea{background:#0e0e11;border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 textarea{min-height:110px;resize:vertical}
 label{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 4px}
@@ -39,7 +39,7 @@ label{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;
 /* top bar */
 .deck{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:linear-gradient(#18181c,#0f0f12);border-bottom:1px solid var(--line)}
 .brand{font-size:1.5rem;display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
-.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
 .burger{background:none;border:1px solid var(--line);border-radius:8px;width:44px;height:40px;display:grid;place-items:center}
 .burger span{display:block;width:20px;height:2px;background:var(--ink);box-shadow:0 6px 0 var(--ink),0 -6px 0 var(--ink)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:30}
@@ -47,7 +47,7 @@ label{display:block;font-size:.8rem;color:var(--muted);text-transform:uppercase;
 .side.open{transform:none}
 .side nav a{display:flex;align-items:center;gap:10px;padding:12px 6px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:700}
 .side nav a .led{margin:0}
-.side nav a[aria-current]{color:var(--amber)}
+.side nav a[aria-current]{color:var(--accent)}
 
 main{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
 .hero{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
@@ -56,7 +56,7 @@ main{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
 /* cards */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
 .card{background:var(--panel);background-image:var(--brush);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s}
-.card:hover{border-color:var(--amber)}
+.card:hover{border-color:var(--accent)}
 .card .open{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:10px}
 .card h3{font-size:1.25rem}
 .vinyl{width:100%;aspect-ratio:1;max-width:170px;align-self:center;border-radius:50%;background:radial-gradient(circle,var(--lbl) 0 17%,#111 17.5% 19%,transparent 19.5%),repeating-radial-gradient(circle,#161616 0 2px,#0b0b0b 2px 4px);box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 0 0 2px #222;position:relative;transition:transform 1.2s}
@@ -69,15 +69,16 @@ main{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
 .back{display:inline-block;margin-bottom:10px;font-size:.9rem}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:18px 0}
 .tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 16px;font-weight:700;color:var(--muted)}
-.tab[aria-selected=true]{color:var(--ink);border-color:var(--amber)}
+.tab[aria-selected=true]{color:var(--ink);border-color:var(--accent)}
 details.info summary{cursor:pointer;color:var(--muted);font-size:.9rem}
 .infogrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 14px}
 
 .key{display:inline-block;min-width:42px;text-align:center;padding:2px 8px;border-radius:6px;background:#050505;border:1px solid #333;color:var(--teal);font-family:"Share Tech Mono",monospace;font-size:1rem;text-shadow:0 0 6px rgba(53,214,198,.6);cursor:pointer}
-.bpm{font-family:"Share Tech Mono",monospace;color:var(--amber);text-shadow:0 0 6px rgba(255,176,0,.5);cursor:pointer;background:none;border:0;padding:0}
+.bpm{font-family:"Share Tech Mono",monospace;color:var(--accent);text-shadow:0 0 6px rgba(167,123,255,.65);cursor:pointer;background:none;border:0;padding:0}
 .led{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;flex:none}
 .led.green{background:var(--green);box-shadow:0 0 8px var(--green)}
-.led.amber{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.led.amber{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.led.acc{background:var(--accent);box-shadow:0 0 8px var(--accent)}
 .led.red{background:var(--red);box-shadow:0 0 8px var(--red)}
 .led.off{background:#333}
 
@@ -95,7 +96,7 @@ ol.play{list-style:none;margin:0;padding:0}
 @media (max-width:1000px){.org{grid-template-columns:1fr}}
 .org h2{font-size:1.15rem;margin-bottom:6px}
 .orow{display:grid;grid-template-columns:22px 1fr 72px 64px auto;gap:8px;align-items:center;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
-.orow.drag{opacity:.4} .orow.over{border-color:var(--amber)}
+.orow.drag{opacity:.4} .orow.over{border-color:var(--accent)}
 .orow .grip{cursor:grab;color:var(--muted);text-align:center;user-select:none}
 .orow input{padding:4px 6px;font-family:"Share Tech Mono",monospace}
 .orow .acts{display:flex;gap:2px}
@@ -110,7 +111,7 @@ ol.play{list-style:none;margin:0;padding:0}
 .toggle{display:flex;gap:6px;flex-wrap:wrap}
 
 /* popover */
-#pop{position:absolute;z-index:40;width:290px;background:#111114;border:1px solid var(--amber);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.7);font-size:.92rem}
+#pop{position:absolute;z-index:40;width:290px;background:#111114;border:1px solid var(--accent);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.7);font-size:.92rem}
 #pop h3{font-size:1.05rem;margin-bottom:6px}
 #pop ul{margin:6px 0 0;padding-left:18px}
 
@@ -133,9 +134,9 @@ svg text{font-family:"Share Tech Mono",monospace;font-size:11px;pointer-events:n
 <aside class="side" id="side" aria-label="Menu" inert>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="brand" style="font-size:1.2rem">Menu</span><button class="btn small" id="closeSide">Close</button></div>
   <nav>
-    <a href="#/" data-nav="home"><span class="led amber"></span>My sets</a>
-    <a href="#/learn" data-nav="learn"><span class="led amber"></span>Learn: keys &amp; BPM</a>
-    <a href="#/about" data-nav="about"><span class="led amber"></span>About</a>
+    <a href="#/" data-nav="home"><span class="led acc"></span>My sets</a>
+    <a href="#/learn" data-nav="learn"><span class="led acc"></span>Learn: keys &amp; BPM</a>
+    <a href="#/about" data-nav="about"><span class="led acc"></span>About</a>
   </nav>
 </aside>
 <main id="main"></main>
@@ -202,8 +203,8 @@ const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(sets))}catch(e){}}
 const getSet=id=>sets.find(s=>s.id===id);
 
 // ---------- AI (only when running through server.py)
-let aiOK=false;
-fetch("/api/health").then(r=>{aiOK=r.ok; if(aiOK) route();}).catch(()=>{});
+let aiOK=false, aiWhy="Open the app at http://localhost:8000/app/ with python3 server.py running in Terminal to use AI.";
+fetch("/api/health").then(r=>{aiOK=r.ok; if(!r.ok) aiWhy="The server is running, but no OpenRouter key was found. Put your key in the .env file, then stop (Ctrl+C) and restart python3 server.py."; route();}).catch(()=>{});
 async function ai(prompt,image){
   const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,image})});
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"AI request failed");
@@ -233,7 +234,7 @@ function keyHelp(k){
   return `<h3><span class="key">${k}</span> ${MUSICAL[k]}</h3><p class="muted" style="margin:0">Camelot puts the 24 keys on a clock. Numbers are positions, A is minor, B is major. Neighbors mix in harmony.</p>
   <ul><li><b>Smooth from here:</b> ${safe.map(x=>`<span class="lcd">${x}</span>`).join(", ")} (same number swaps the mood)</li><li><b>Energy jump:</b> ${boost.map(x=>`<span class="lcd">${x}</span>`).join(", ")}</li><li><b>Anything else</b> may clash in a long blend.</li></ul>`;
 }
-function bpmHelp(b){ return `<h3><span class="lcd" style="color:var(--amber)">${b} BPM</span></h3><p style="margin:0">Beats per minute. Tracks within <b>±6%</b> (about ${Math.round(b*.94)}–${Math.round(b*1.06)} BPM) can be beatmatched for a long blend. Bigger jumps need a cut, loop or echo-out. Half or double time (${Math.round(b/2)} or ${b*2}) also works.</p><p class="muted" style="margin:6px 0 0">32 bars at this tempo ≈ ${mixWin(b,32)} seconds.</p>`; }
+function bpmHelp(b){ return `<h3><span class="lcd" style="color:var(--accent)">${b} BPM</span></h3><p style="margin:0">Beats per minute. Tracks within <b>±6%</b> (about ${Math.round(b*.94)}–${Math.round(b*1.06)} BPM) can be beatmatched for a long blend. Bigger jumps need a cut, loop or echo-out. Half or double time (${Math.round(b/2)} or ${b*2}) also works.</p><p class="muted" style="margin:6px 0 0">32 bars at this tempo ≈ ${mixWin(b,32)} seconds.</p>`; }
 document.addEventListener("click",e=>{
   const k=e.target.closest("[data-keyhelp]"), b=e.target.closest("[data-bpmhelp]");
   if(k){ showPop(k,keyHelp(k.dataset.keyhelp)); e.stopPropagation(); return; }
@@ -317,10 +318,10 @@ function organizeTab(s){
     <button class="btn primary" id="addPaste">Add songs</button>
     <label for="shot">Or upload a playlist screenshot</label>
     <input type="file" id="shot" accept="image/*" ${aiOK?"":"disabled"}>
-    ${aiOK?"":`<p class="note">Screenshots and AI need the app running on your laptop through server.py.</p>`}
+    ${aiOK?"":`<p class="note">${esc(aiWhy)}</p>`}
     <p class="msg" id="addMsg" aria-live="polite"></p>
   </section>
-  <section><div class="panel"><h2>Set order</h2><p class="note">Drag the ≡ handle or use the arrows. Edit BPM and key right in the row.</p><div id="order"></div></div></section>
+  <section><div class="panel"><h2>Set order</h2><p class="note">Drag the ≡ handle or use the arrows. Edit BPM and key right in the row; tap a glowing key or BPM for help.</p><div id="order"></div></div></section>
   <section>
     <div class="panel tool"><h2>Shape the set</h2><div class="knobs">
       <label for="rule">Key rule</label><select id="rule">${Object.entries(RULES).map(([k,v])=>`<option value="${k}" ${sh.rule===k?"selected":""}>${v.name}</option>`).join("")}</select>
@@ -330,7 +331,7 @@ function organizeTab(s){
     <div class="panel tool"><h2>AI next song</h2>
       <label for="after">Suggest songs after</label><select id="after">${s.tracks.map((t,i)=>`<option value="${i}" ${i===s.tracks.length-1?"selected":""}>${i+1}. ${esc(t.title)}</option>`).join("")}</select>
       <button class="btn primary" id="suggest" style="margin-top:10px;width:100%" ${aiOK&&s.tracks.length?"":"disabled"}>Suggest songs</button>
-      <p class="note">${aiOK?"Matches key, BPM, genre and your shape settings. Results are estimates; check them in your DJ software.":"Run the app through server.py to use AI suggestions."}</p>
+      <p class="note">${aiOK?"Matches key, BPM, genre and your shape settings. Results are estimates; check them in your DJ software.":esc(aiWhy)}</p>
       <div id="suggOut" aria-live="polite"></div></div>
   </section></div>`;
   drawOrder(s);
@@ -352,7 +353,7 @@ function drawOrder(s){
       if(!x.keyOk) why.push(`key jump ${T[i-1].key} → ${t.key}`); if(!x.tempoOk) why.push(`${x.pct.toFixed(1)}% BPM jump`);
       j=why.length?`<div class="jump bad"><span class="led red"></span>Too big a ${why.join(" and ")}</div>`:`<div class="jump ok"><span class="led green"></span>${esc(x.k.label)}, mixes smoothly</div>`; }
     return j+`<div class="orow" draggable="true" data-i="${i}"><span class="grip" aria-hidden="true">≡</span>
-      <span><b>${esc(t.title)}</b><br><span class="note">${esc(t.artist)}${t.genre?" · "+esc(t.genre):""}</span></span>
+      <span><b>${esc(t.title)}</b><br><span class="note">${esc(t.artist)}${t.genre?" · "+esc(t.genre):""}</span> ${keyBtn(t.key)} ${bpmBtn(t.bpm)}</span>
       <input aria-label="BPM for ${esc(t.title)}" type="number" min="50" max="200" value="${t.bpm}" data-bpm="${i}">
       <input aria-label="Key for ${esc(t.title)}" value="${t.key}" data-key="${i}">
       <span class="acts"><button aria-label="Move up" data-mv="${i}" data-d="-1">↑</button><button aria-label="Move down" data-mv="${i}" data-d="1">↓</button><button aria-label="Remove ${esc(t.title)}" data-rm="${i}">✕</button></span></div>`;
@@ -440,7 +441,7 @@ Reply with only a JSON array; each item: ${SONG_SCHEMA.slice(0,-1)}, "why": one 
 function wheel(){
   let g=""; [["B",118,"#efe8db"],["A",78,"#a39c90"]].forEach(([l,r])=>{ for(let n=1;n<=12;n++){ const a=((n-1)*30-90)*Math.PI/180, x=150+r*Math.cos(a), y=150+r*Math.sin(a), k=n+l;
     g+=`<g data-keyhelp="${k}" style="cursor:pointer" role="button" tabindex="0" aria-label="${k}, ${MUSICAL[k]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="${hueOf(k)}" stroke="#000" stroke-width="2"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="#000">${k}</text></g>`; }});
-  return `<svg viewBox="0 0 300 300" role="img" aria-label="Camelot wheel. Tap a key for details."><circle cx="150" cy="150" r="145" fill="#0d0d0f" stroke="#2b2b32"/>${g}<circle cx="150" cy="150" r="44" fill="#111" stroke="#2b2b32"/><text x="150" y="146" text-anchor="middle" fill="#ffb000">CAMELOT</text><text x="150" y="162" text-anchor="middle" fill="#a39c90">A inner · B outer</text></svg>`;
+  return `<svg viewBox="0 0 300 300" role="img" aria-label="Camelot wheel. Tap a key for details."><circle cx="150" cy="150" r="145" fill="#0d0d0f" stroke="#2b2b32"/>${g}<circle cx="150" cy="150" r="44" fill="#111" stroke="#2b2b32"/><text x="150" y="146" text-anchor="middle" fill="#a77bff">CAMELOT</text><text x="150" y="162" text-anchor="middle" fill="#a39c90">A inner · B outer</text></svg>`;
 }
 function learnPage(){
   $("#main").innerHTML=`<div class="hero"><div><h1>Keys &amp; BPM</h1><p class="muted" style="margin:4px 0 0">Tap any key on the wheel to see where it can go.</p></div></div>
