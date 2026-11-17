@@ -115,6 +115,12 @@ ol.play{list-style:none;margin:0;padding:0}
 #pop h3{font-size:1.05rem;margin-bottom:6px}
 #pop ul{margin:6px 0 0;padding-left:18px}
 
+/* floating wheel */
+#fab{position:fixed;right:20px;bottom:20px;z-index:35;width:58px;height:58px;border-radius:50%;border:1px solid var(--accent);background:radial-gradient(circle,#2a2238 0 30%,#111 31% 100%);color:var(--accent);font-size:1.6rem;box-shadow:0 0 14px rgba(167,123,255,.45),0 6px 18px rgba(0,0,0,.6)}
+#dock{position:fixed;right:20px;bottom:90px;z-index:35;width:min(330px,calc(100vw - 40px));max-height:calc(100vh - 130px);overflow:auto;background:#111114;border:1px solid var(--accent);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.7)}
+#dock .dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+#dock g.dim{opacity:.18} #dock g.sel circle{stroke:#fff;stroke-width:3}
+#dockInfo{font-size:.9rem} #dockInfo ul{margin:6px 0 0;padding-left:18px}
 /* learn */
 .learn{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:22px;align-items:start}
 @media (max-width:820px){.learn{grid-template-columns:1fr}}
@@ -141,6 +147,8 @@ svg text{font-family:"Share Tech Mono",monospace;font-size:11px;pointer-events:n
 </aside>
 <main id="main"></main>
 <div id="pop" hidden role="dialog"></div>
+<button id="fab" hidden aria-label="Show Camelot wheel" aria-expanded="false" aria-controls="dock">◎</button>
+<section id="dock" hidden aria-label="Camelot wheel"><div class="dhead"><h3 style="font-size:1.05rem">Camelot wheel</h3><button class="btn small" id="dockClose">Hide</button></div><div id="dockWheel"></div><div id="dockInfo"><p class="note" style="margin:6px 0 0">Tap a key to light up where it can go. It stays open while you organize.</p></div></section>
 
 <script>
 // ---------- data helpers
@@ -237,12 +245,22 @@ function keyHelp(k){
 function bpmHelp(b){ return `<h3><span class="lcd" style="color:var(--accent)">${b} BPM</span></h3><p style="margin:0">Beats per minute. Tracks within <b>±6%</b> (about ${Math.round(b*.94)}–${Math.round(b*1.06)} BPM) can be beatmatched for a long blend. Bigger jumps need a cut, loop or echo-out. Half or double time (${Math.round(b/2)} or ${b*2}) also works.</p><p class="muted" style="margin:6px 0 0">32 bars at this tempo ≈ ${mixWin(b,32)} seconds.</p>`; }
 document.addEventListener("click",e=>{
   const k=e.target.closest("[data-keyhelp]"), b=e.target.closest("[data-bpmhelp]");
-  if(k){ const anchor=k.closest("#pop")?$("#wheelBtn")||k:k; showPop(anchor,keyHelp(k.dataset.keyhelp)); e.stopPropagation(); return; }
+  if(k){ if(k.closest("#dock")){ dockKey(k.dataset.keyhelp); e.stopPropagation(); return; } showPop(k,keyHelp(k.dataset.keyhelp)); e.stopPropagation(); return; }
   if(b){ showPop(b,bpmHelp(+b.dataset.bpmhelp)); e.stopPropagation(); return; }
   if(!e.target.closest("#pop")&&e.target.dataset.key===undefined) hidePop();
 });
 const keyBtn=k=>`<button class="key" data-keyhelp="${k}" aria-label="Key ${k}, ${MUSICAL[k]}. Show key help">${k}</button>`;
 const bpmBtn=b=>`<button class="bpm" data-bpmhelp="${b}" aria-label="${b} BPM. Show tempo help">${b} BPM</button>`;
+
+// ---------- floating Camelot wheel
+function setDock(open){ $("#dock").hidden=!open; $("#fab").setAttribute("aria-expanded",open); if(open&&!$("#dockWheel").innerHTML) $("#dockWheel").innerHTML=wheel(); }
+$("#fab").onclick=()=>{ setDock($("#dock").hidden); track("camelot_wheel_opened"); };
+$("#dockClose").onclick=()=>{ setDock(false); $("#fab").focus(); };
+function dockKey(k){
+  $("#dockWheel").querySelectorAll("g[data-keyhelp]").forEach(g=>{ const x=g.dataset.keyhelp, m=keyMove(k,x).s; g.classList.toggle("sel",x===k); g.classList.toggle("dim",x!==k&&m<.5); });
+  $("#dockInfo").innerHTML=keyHelp(k).replace("<h3>","<h3 style='font-size:1rem;margin:8px 0 4px'>");
+}
+$("#dock").addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.dataset&&e.target.dataset.keyhelp){ e.preventDefault(); dockKey(e.target.dataset.keyhelp); }});
 
 // ---------- router
 window.addEventListener("hashchange",route);
@@ -250,6 +268,7 @@ function route(){
   hidePop(); setMenu(false);
   const h=location.hash.replace(/^#\/?/,"").split("/");
   document.querySelectorAll("[data-nav]").forEach(a=>a.toggleAttribute("aria-current",a.dataset.nav===(h[0]||"home")||(h[0]==="set"&&a.dataset.nav==="home")));
+  const org=h[0]==="set"&&h[2]==="organize"; $("#fab").hidden=!org; if(!org) setDock(false);
   if(h[0]==="set"&&getSet(h[1])) return setPage(getSet(h[1]),h[2]==="organize"?"organize":"play");
   if(h[0]==="learn") return learnPage();
   if(h[0]==="about") return aboutPage();
@@ -321,7 +340,7 @@ function organizeTab(s){
     ${aiOK?"":`<p class="note">${esc(aiWhy)}</p>`}
     <p class="msg" id="addMsg" aria-live="polite"></p>
   </section>
-  <section><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2>Set order</h2><button class="btn small" id="wheelBtn">◎ Camelot wheel</button></div><p class="note">Drag the ≡ handle or use the arrows. Click a key box to see where that key can go.</p><div id="order"></div></div></section>
+  <section><div class="panel"><h2>Set order</h2><p class="note">Drag the ≡ handle or use the arrows. Click a key box for help, or open the floating Camelot wheel (bottom right).</p><div id="order"></div></div></section>
   <section>
     <div class="panel tool"><h2>Shape the set</h2><div class="knobs">
       <label for="rule">Key rule</label><select id="rule">${Object.entries(RULES).map(([k,v])=>`<option value="${k}" ${sh.rule===k?"selected":""}>${v.name}</option>`).join("")}</select>
@@ -342,7 +361,6 @@ function organizeTab(s){
   $("#addPaste").onclick=()=>addFromPaste(s);
   $("#shot").onchange=e=>addFromShot(s,e.target.files[0]);
   $("#suggest").onclick=()=>suggest(s);
-  $("#wheelBtn").onclick=e=>{ e.stopPropagation(); showPop(e.target,`<h3>Camelot wheel</h3>${wheel()}<p class="note" style="margin:6px 0 0">Neighbors on the wheel mix smoothly. Same number, other letter = mood shift. Tap a key on the wheel for details.</p>`); };
 }
 
 function drawOrder(s){
