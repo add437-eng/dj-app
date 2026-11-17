@@ -48,12 +48,15 @@ class Handler(SimpleHTTPRequestHandler):
         if not KEY or "replace" in KEY:
             return self.send_json(503, {"error": "Add OPENROUTER_API_KEY to .env"})
         try:
-            prompt = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))["prompt"]
+            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
+            prompt = body["prompt"]
+            image = body.get("image")  # optional data URL (playlist screenshot)
         except Exception:
             return self.send_json(400, {"error": "bad request"})
         req = urllib.request.Request(
             "https://openrouter.ai/api/v1/chat/completions",
-            data=json.dumps({"model": MODEL, "messages": [{"role": "user", "content": prompt}]}).encode(),
+            data=json.dumps({"model": MODEL, "messages": [{"role": "user", "content":
+                [{"type": "text", "text": prompt}, {"type": "image_url", "image_url": {"url": image}}] if image else prompt}]}).encode(),
             headers={"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"},
         )
         try:
