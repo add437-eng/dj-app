@@ -101,6 +101,7 @@ ol.play{list-style:none;margin:0;padding:0}
 .orow input{padding:4px 6px;font-family:"Share Tech Mono",monospace}
 .orow .acts{display:flex;gap:2px}
 .orow .acts button{background:none;border:1px solid var(--line);border-radius:6px;width:28px;height:28px;padding:0}
+.chk{font-size:.75rem;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted);text-decoration:none;white-space:nowrap}.chk.ok{color:var(--green);border-color:var(--green)}.chk.mid{color:var(--teal);border-color:var(--teal)}.chk.est{color:var(--warn);border-color:var(--warn)}
 .jump{font-size:.82rem;padding:4px 10px 4px 34px}
 .jump.bad{color:var(--red)} .jump.ok{color:var(--muted)}
 .tool + .tool{margin-top:16px}
@@ -213,8 +214,8 @@ const getSet=id=>sets.find(s=>s.id===id);
 // ---------- AI (only when running through server.py)
 let aiOK=false, aiWhy="Open the app at http://localhost:8000/app/ with python3 server.py running in Terminal to use AI.";
 fetch("/api/health").then(r=>{aiOK=r.ok; if(!r.ok) aiWhy="The server is running, but no OpenRouter key was found. Put your key in the .env file, then stop (Ctrl+C) and restart python3 server.py."; route();}).catch(()=>{});
-async function ai(prompt,image){
-  const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,image})});
+async function ai(prompt,image,web){
+  const r=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,image,web:!!web})});
   const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"AI request failed");
   return Array.isArray(d.result)?d.result:[];
 }
@@ -333,14 +334,15 @@ function organizeTab(s){
   <section class="panel"><h2>Add songs</h2>
     <label for="paste">Paste a list</label>
     <textarea id="paste" placeholder="Title - Artist&#10;Title - Artist, 124, 8A, house"></textarea>
-    <p class="note">One song per line. BPM, key and genre are optional${aiOK?"; the AI fills in what’s missing.":". Without the local server, include BPM and key."}</p>
+    <p class="note">One song per line. BPM, key and genre are optional${aiOK?"; the AI fills in what’s missing, then checks every song against music sites online.":". Without the local server, include BPM and key."}</p>
     <button class="btn primary" id="addPaste">Add songs</button>
     <label for="shot">Or upload a playlist screenshot</label>
     <input type="file" id="shot" accept="image/*" ${aiOK?"":"disabled"}>
     ${aiOK?"":`<p class="note">${esc(aiWhy)}</p>`}
     <p class="msg" id="addMsg" aria-live="polite"></p>
   </section>
-  <section><div class="panel"><h2>Set order</h2><p class="note">Drag the ≡ handle or use the arrows. Click a key box for help, or open the floating Camelot wheel (bottom right).</p><div id="order"></div></div></section>
+  <section><div class="panel"><h2>Set order</h2><button class="btn small" id="verifyAll" ${aiOK&&s.tracks.length?"":"disabled"} style="margin:4px 0 8px">Check all songs online</button>
+<p class="note">Drag the ≡ handle or use the arrows. Click a key box for help, or open the floating Camelot wheel (bottom right).</p><div id="order"></div></div></section>
   <section>
     <div class="panel tool"><h2>Shape the set</h2><div class="knobs">
       <label for="rule">Key rule</label><select id="rule">${Object.entries(RULES).map(([k,v])=>`<option value="${k}" ${sh.rule===k?"selected":""}>${v.name}</option>`).join("")}</select>
@@ -361,6 +363,7 @@ function organizeTab(s){
   $("#addPaste").onclick=()=>addFromPaste(s);
   $("#shot").onchange=e=>addFromShot(s,e.target.files[0]);
   $("#suggest").onclick=()=>suggest(s);
+  $("#verifyAll").onclick=()=>verify(s,s.tracks.filter(t=>t.check!=="verified"&&t.check!=="you"),"");
 }
 
 function drawOrder(s){
@@ -372,7 +375,7 @@ function drawOrder(s){
       if(!x.keyOk) why.push(`key jump ${T[i-1].key} → ${t.key}`); if(!x.tempoOk) why.push(`${x.pct.toFixed(1)}% BPM jump`);
       j=why.length?`<div class="jump bad"><span class="led red"></span>Too big a ${why.join(" and ")}</div>`:`<div class="jump ok"><span class="led green"></span>${esc(x.k.label)}, mixes smoothly</div>`; }
     return j+`<div class="orow" draggable="true" data-i="${i}"><span class="grip" aria-hidden="true">≡</span>
-      <span><b>${esc(t.title)}</b><br><span class="note">${esc(t.artist)}${t.genre?" · "+esc(t.genre):""}</span> ${keyBtn(t.key)} ${bpmBtn(t.bpm)}</span>
+      <span><b>${esc(t.title)}</b><br><span class="note">${esc(t.artist)}${t.genre?" · "+esc(t.genre):""}</span> ${keyBtn(t.key)} ${bpmBtn(t.bpm)} ${badgeOf(t)}</span>
       <input aria-label="BPM for ${esc(t.title)}" type="number" min="50" max="200" value="${t.bpm}" data-bpm="${i}">
       <input aria-label="Key for ${esc(t.title)}" value="${t.key}" data-key="${i}">
       <span class="acts"><button aria-label="Move up" data-mv="${i}" data-d="-1">↑</button><button aria-label="Move down" data-mv="${i}" data-d="1">↓</button><button aria-label="Remove ${esc(t.title)}" data-rm="${i}">✕</button></span></div>`;
@@ -382,8 +385,8 @@ function drawOrder(s){
     if(m) move(+m.dataset.mv,+m.dataset.mv+ +m.dataset.d);
     if(r){ T.splice(+r.dataset.rm,1); save(); drawOrder(s); refreshAfter(s); } };
   box.onchange=e=>{ const b=e.target.dataset.bpm, k=e.target.dataset.key;
-    if(b!==undefined){ const v=Math.round(+e.target.value); if(v>=50&&v<=200){ T[b].bpm=v; save(); drawOrder(s);} }
-    if(k!==undefined){ const v=parseKey(e.target.value); if(v){ T[k].key=v; save(); drawOrder(s);} else e.target.value=T[k].key; } };
+    if(b!==undefined){ const v=Math.round(+e.target.value); if(v>=50&&v<=200){ T[b].bpm=v; T[b].check="you"; save(); drawOrder(s);} }
+    if(k!==undefined){ const v=parseKey(e.target.value); if(v){ T[k].key=v; T[k].check="you"; save(); drawOrder(s);} else e.target.value=T[k].key; } };
   box.addEventListener("focusin",e=>{ const k=e.target.dataset.key; if(k!==undefined) showPop(e.target,keyHelp(T[k].key)); });
   let dragFrom=null;
   box.ondragstart=e=>{ const r=e.target.closest(".orow"); if(!r) return; dragFrom=+r.dataset.i; r.classList.add("drag"); e.dataTransfer.effectAllowed="move"; };
@@ -420,7 +423,7 @@ async function addFromPaste(s){
   }
   const all=done.concat(extra); s.tracks.push(...all); save(); $("#paste").value=""; drawOrder(s); refreshAfter(s);
   track("songs_added",{count:all.length,via:"paste",ai:extra.length});
-  msg(`Added ${all.length} song${all.length===1?"":"s"}.${extra.length?" AI values are estimates, so check BPM and key and fix them in the rows.":""}`,"ok");
+  msg(`Added ${all.length} song${all.length===1?"":"s"}.`,"ok"); verify(s,all,`Added ${all.length}.`);
 }
 function shrink(file){ return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file);
   img.onload=()=>{ const sc=Math.min(1,1400/Math.max(img.width,img.height)), c=document.createElement("canvas"); c.width=img.width*sc; c.height=img.height*sc; c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg",.85)); };
@@ -430,10 +433,34 @@ async function addFromShot(s,file){
   try{ const img=await shrink(file);
     const list=(await ai(`This is a screenshot of a music playlist. List every song you can read in it, top to bottom. For each, give the title, artist, and your best estimate of BPM, Camelot key, genre and energy. Reply with only a JSON array; each item: ${SONG_SCHEMA}.`,img)).map(cleanSong).filter(Boolean);
     s.tracks.push(...list); save(); drawOrder(s); refreshAfter(s); track("songs_added",{count:list.length,via:"screenshot"});
-    msg(list.length?`Added ${list.length} songs from the screenshot. Check the AI’s BPM and key estimates.`:"Couldn’t read any songs. Try a clearer or closer screenshot.",list.length?"ok":"err");
+    if(list.length) verify(s,list,`Added ${list.length} from the screenshot.`); else msg("Couldn’t read any songs. Try a clearer or closer screenshot.","err");
   }catch(e){ msg("Couldn’t read the screenshot: "+e.message,"err"); }
   $("#shot").value="";
 }
+
+// ---------- web verification
+async function verify(s,list,label){
+  if(!aiOK||!list.length) return;
+  let ok=0, changed=0;
+  for(let b=0;b<list.length;b+=6){
+    const batch=list.slice(b,b+6);
+    msg(`${label} Checking BPM, key and genre online… (${Math.min(b+6,list.length)}/${list.length})`);
+    try{
+      const res=await ai(`Search the web to verify each song's tempo, musical key and genre. Prefer music-data sites such as Tunebat, SongBPM, GetSongBPM, Musicstax or Beatport.
+${batch.map((t,i)=>`${i}. "${t.title}" by ${t.artist} (current guess: ${t.bpm} BPM, ${t.key})`).join("\n")}
+Convert the key to Camelot notation (e.g. A minor = 8A). If sources disagree, use the value most sources agree on and set confidence "medium". If you can't find the song, set confidence "low" and keep the current guess.
+Reply with only a JSON array, one item per song in the same order: {"i": number, "bpm": number, "camelot": string, "genre": short lowercase genre, "source": URL you used, "confidence": "high"|"medium"|"low"}.`,null,true);
+      res.forEach(r=>{ const t=batch[+r.i]; if(!t) return; const key=parseKey(r.camelot), bpm=Math.round(+r.bpm);
+        if(r.confidence==="low"||!key||!(bpm>=50&&bpm<=200)){ t.check="unverified"; return; }
+        if(key!==t.key||bpm!==t.bpm) changed++;
+        t.key=key; t.bpm=bpm; if(r.genre) t.genre=String(r.genre).toLowerCase(); t.check=r.confidence==="high"?"verified":"likely"; t.src=/^https?:\/\//.test(r.source||"")?r.source:""; ok++; });
+    }catch(e){ msg("Couldn’t check online: "+e.message,"err"); save(); drawOrder(s); return; }
+    save(); drawOrder(s);
+  }
+  track("songs_verified",{count:list.length,verified:ok,changed});
+  msg(`${label} Checked ${list.length} online: ${ok} confirmed${changed?`, ${changed} corrected`:""}${list.length-ok?`, ${list.length-ok} not found (marked “estimate”)`:""}.`,"ok");
+}
+const badgeOf=t=>t.check==="verified"?`<a class="chk ok" href="${esc(t.src||"#")}" target="_blank" rel="noopener" title="Checked online">✓ verified</a>`:t.check==="likely"?`<a class="chk mid" href="${esc(t.src||"#")}" target="_blank" rel="noopener" title="Sources mostly agree">✓ likely</a>`:t.check==="you"?`<span class="chk">edited by you</span>`:`<span class="chk est">estimate</span>`;
 
 // ---------- AI next song
 async function suggest(s){
