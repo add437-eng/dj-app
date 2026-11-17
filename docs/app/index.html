@@ -111,7 +111,7 @@ ol.play{list-style:none;margin:0;padding:0}
 .toggle{display:flex;gap:6px;flex-wrap:wrap}
 
 /* popover */
-#pop{position:absolute;z-index:40;width:290px;background:#111114;border:1px solid var(--accent);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.7);font-size:.92rem}
+#pop{position:absolute;z-index:40;width:310px;background:#111114;border:1px solid var(--accent);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.7);font-size:.92rem}
 #pop h3{font-size:1.05rem;margin-bottom:6px}
 #pop ul{margin:6px 0 0;padding-left:18px}
 
@@ -237,9 +237,9 @@ function keyHelp(k){
 function bpmHelp(b){ return `<h3><span class="lcd" style="color:var(--accent)">${b} BPM</span></h3><p style="margin:0">Beats per minute. Tracks within <b>±6%</b> (about ${Math.round(b*.94)}–${Math.round(b*1.06)} BPM) can be beatmatched for a long blend. Bigger jumps need a cut, loop or echo-out. Half or double time (${Math.round(b/2)} or ${b*2}) also works.</p><p class="muted" style="margin:6px 0 0">32 bars at this tempo ≈ ${mixWin(b,32)} seconds.</p>`; }
 document.addEventListener("click",e=>{
   const k=e.target.closest("[data-keyhelp]"), b=e.target.closest("[data-bpmhelp]");
-  if(k){ showPop(k,keyHelp(k.dataset.keyhelp)); e.stopPropagation(); return; }
+  if(k){ const anchor=k.closest("#pop")?$("#wheelBtn")||k:k; showPop(anchor,keyHelp(k.dataset.keyhelp)); e.stopPropagation(); return; }
   if(b){ showPop(b,bpmHelp(+b.dataset.bpmhelp)); e.stopPropagation(); return; }
-  if(!e.target.closest("#pop")) hidePop();
+  if(!e.target.closest("#pop")&&e.target.dataset.key===undefined) hidePop();
 });
 const keyBtn=k=>`<button class="key" data-keyhelp="${k}" aria-label="Key ${k}, ${MUSICAL[k]}. Show key help">${k}</button>`;
 const bpmBtn=b=>`<button class="bpm" data-bpmhelp="${b}" aria-label="${b} BPM. Show tempo help">${b} BPM</button>`;
@@ -321,7 +321,7 @@ function organizeTab(s){
     ${aiOK?"":`<p class="note">${esc(aiWhy)}</p>`}
     <p class="msg" id="addMsg" aria-live="polite"></p>
   </section>
-  <section><div class="panel"><h2>Set order</h2><p class="note">Drag the ≡ handle or use the arrows. Edit BPM and key right in the row; tap a glowing key or BPM for help.</p><div id="order"></div></div></section>
+  <section><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2>Set order</h2><button class="btn small" id="wheelBtn">◎ Camelot wheel</button></div><p class="note">Drag the ≡ handle or use the arrows. Click a key box to see where that key can go.</p><div id="order"></div></div></section>
   <section>
     <div class="panel tool"><h2>Shape the set</h2><div class="knobs">
       <label for="rule">Key rule</label><select id="rule">${Object.entries(RULES).map(([k,v])=>`<option value="${k}" ${sh.rule===k?"selected":""}>${v.name}</option>`).join("")}</select>
@@ -342,6 +342,7 @@ function organizeTab(s){
   $("#addPaste").onclick=()=>addFromPaste(s);
   $("#shot").onchange=e=>addFromShot(s,e.target.files[0]);
   $("#suggest").onclick=()=>suggest(s);
+  $("#wheelBtn").onclick=e=>{ e.stopPropagation(); showPop(e.target,`<h3>Camelot wheel</h3>${wheel()}<p class="note" style="margin:6px 0 0">Neighbors on the wheel mix smoothly. Same number, other letter = mood shift. Tap a key on the wheel for details.</p>`); };
 }
 
 function drawOrder(s){
@@ -365,6 +366,7 @@ function drawOrder(s){
   box.onchange=e=>{ const b=e.target.dataset.bpm, k=e.target.dataset.key;
     if(b!==undefined){ const v=Math.round(+e.target.value); if(v>=50&&v<=200){ T[b].bpm=v; save(); drawOrder(s);} }
     if(k!==undefined){ const v=parseKey(e.target.value); if(v){ T[k].key=v; save(); drawOrder(s);} else e.target.value=T[k].key; } };
+  box.addEventListener("focusin",e=>{ const k=e.target.dataset.key; if(k!==undefined) showPop(e.target,keyHelp(T[k].key)); });
   let dragFrom=null;
   box.ondragstart=e=>{ const r=e.target.closest(".orow"); if(!r) return; dragFrom=+r.dataset.i; r.classList.add("drag"); e.dataTransfer.effectAllowed="move"; };
   box.ondragover=e=>{ const r=e.target.closest(".orow"); if(!r) return; e.preventDefault(); box.querySelectorAll(".over").forEach(x=>x.classList.remove("over")); r.classList.add("over"); };
