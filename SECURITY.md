@@ -10,7 +10,7 @@
 |---|---|---|
 | Secret keys in the repo | Searched the repo for `sk-or-`, `sk-ant-`, `sk-proj-`, `sk_live_`, `sb_secret_`, `service_role` and my OpenRouter key | Clean. The key lives only in Render's Environment settings and my local `.env`, which `.gitignore` excludes. |
 | Secret keys on the live site | Viewed source of `/`, `/app/` and `/analytics.js` and searched for the same strings | Clean. Only the PostHog `phc_` key appears, which is meant to be public. |
-| Rate limit on the AI route | Called `POST /api/ai` 30 times in a row from the browser console (snippet below) | Requests 1–20 returned 400 (empty test body), requests 21–30 returned **429**. See screenshot. |
+| Rate limit on the AI route | Called `POST /api/ai` 30 times in a row from Terminal with curl (snippet below) | Requests 1–20 returned 400 (empty test body), requests 21–30 returned **429**. See screenshot. |
 | Private files reachable over the web | Requested `/.env`, `/../.env`, `/%2e%2e/.env`, `/../server.py` | All 404. The server only serves the `docs/` folder. |
 | Spending cap | OpenRouter key has a hard credit limit; server caps each reply at 1,500 tokens and the whole app at 300 AI calls per day | In place. |
 | Dependencies | `pip-audit -r requirements.txt` | No third-party packages, so nothing to patch. |
