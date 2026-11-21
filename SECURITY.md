@@ -2,7 +2,7 @@
 
 **Lane:** Beginner
 **App type:** AI app, no database. No sign-in. Sets are saved only in each visitor's own browser (localStorage); the server stores nothing.
-**Live URL:** [your Render URL]/app/
+**Live URL:** https://dj-app-6xjr.onrender.com/app/
 
 ## What I checked and found
 
