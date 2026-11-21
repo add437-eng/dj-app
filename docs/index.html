@@ -186,7 +186,7 @@
       <p><strong>Riskiest Assumption:</strong> Spotify no longer gives new apps BPM or key data, so the app needs another way to fill a DJ’s crate. The risk is that an AI model can’t suggest real songs with BPM and Camelot keys accurate enough to mix. If its suggestions are wrong, the set it builds will clash.</p>
       <p><strong>How Build 2 tests it:</strong> The “Suggest songs that fit” button in My crate asks an AI model (via OpenRouter) for real songs in the keys and tempo range the set needs. I check its suggestions against Spotify’s Mix view, which shows each track’s BPM and key, and note how many are right.</p>
       <p><strong>Simple Architecture (v3):</strong> Browser (the app at /app/, sets saved in the browser) → my Python server on Render (rate limits, size checks, keeps the API key secret) → OpenRouter AI model, with web search to verify BPM, key and genre → JSON back to the app.</p>
-      <p><strong>Hosting, data & security (PRD v3):</strong> Hosted on Render’s free tier at [your Render URL]. No database and no sign-in: each visitor’s sets live in their own browser, so there’s no shared data to protect. The OpenRouter key is stored only in Render’s environment settings. The AI route allows 20 requests per visitor per 10 minutes and 300 per day overall, and my OpenRouter key has a hard spending cap. Full audit in <a href="https://github.com/add437-eng/dj-app/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+      <p><strong>Hosting, data & security (PRD v3):</strong> Hosted on Render’s free tier at https://dj-app-6xjr.onrender.com. No database and no sign-in: each visitor’s sets live in their own browser, so there’s no shared data to protect. The OpenRouter key is stored only in Render’s environment settings. The AI route allows 20 requests per visitor per 10 minutes and 300 per day overall, and my OpenRouter key has a hard spending cap. Full audit in <a href="https://github.com/add437-eng/dj-app/blob/main/SECURITY.md">SECURITY.md</a>.</p>
 
       <h3>4. Unit Economics & Analytics Snapshot (Updated Weekly)</h3>
       <div class="grid-2">
@@ -240,7 +240,7 @@
           <li><strong>What shipped:</strong> A full redesign (multiple sets on a home page, a dark DJ-board and vinyl look, a slide-out menu, a view-only “Your set” tab with transition timing, and an “Organize set” tab with a floating Camelot wheel). Songs can be added by pasting a list or uploading a playlist screenshot, and the AI checks each song’s BPM, key and genre against music sites online. The app is live on Render with rate limits, and the security audit is in SECURITY.md. PostHog tracks the funnel: set created → songs added → reordered → AI suggestions → set viewed.</li>
           <li><strong>Things learned:</strong> A public AI route needs a rate limit and a spending cap, or anyone can spend my credit. Static hosting (GitHub Pages) can’t keep a secret key, so the app needs a server host.</li>
           <li><strong>What broke / changed in PRD:</strong> PRD v3 adds hosting, data and security choices. I chose browser storage over a database because sets are personal and there’s no sign-in. The free server sleeps when idle, so the first load is slow.</li>
-          <li><strong>Cost & time this week:</strong> $[X.XX] in OpenRouter calls (see openrouter.ai → Activity) · [X] hours</li>
+          <li><strong>Cost & time this week:</strong> $0.05 in OpenRouter calls (see openrouter.ai → Activity) · 6 hours</li>
         </ul>
       </div>
 
